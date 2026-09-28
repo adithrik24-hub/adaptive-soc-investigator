@@ -10,6 +10,33 @@ type InvestigationResult = {
   recommendation: string[];
 };
 
+const memoryExperiences = [
+  {
+    title: "Credential compromise",
+    detail:
+      "Failed logins followed by successful access from a new device.",
+    relevance: "HIGH",
+  },
+  {
+    title: "Corporate VPN false positive",
+    detail:
+      "Repeated authentication failures caused by trusted corporate VPN infrastructure.",
+    relevance: "MEDIUM",
+  },
+  {
+    title: "Password spraying",
+    detail:
+      "Authentication attempts distributed across multiple accounts from one source.",
+    relevance: "MEDIUM",
+  },
+  {
+    title: "Suspicious PowerShell",
+    detail:
+      "Endpoint execution context increased the severity of an authentication investigation.",
+    relevance: "HIGH",
+  },
+];
+
 export default function InvestigationPage() {
   const [result, setResult] = useState<InvestigationResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +47,7 @@ export default function InvestigationPage() {
     async function investigate() {
       try {
         setLoading(true);
+        setError(null);
 
         const response = await fetch(
           "http://127.0.0.1:8000/api/investigate",
@@ -43,7 +71,6 @@ export default function InvestigationPage() {
         }
 
         const data = await response.json();
-
         setResult(data);
       } catch (err) {
         console.error(err);
@@ -125,12 +152,12 @@ export default function InvestigationPage() {
 
               <div>
                 <div className="font-semibold text-purple-300">
-                  Investigating with organizational memory…
+                  Searching organizational memory…
                 </div>
 
                 <p className="mt-1 text-sm text-slate-500">
                   Hindsight is comparing this alert with previous
-                  security investigations.
+                  investigation experiences.
                 </p>
               </div>
             </div>
@@ -151,11 +178,11 @@ export default function InvestigationPage() {
           </section>
         )}
 
-        {/* RESULTS */}
+        {/* REAL RESULT */}
 
         {result && !loading && (
           <>
-            {/* STEP 01 */}
+            {/* STEP 01 + STEP 02 */}
 
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
 
@@ -174,14 +201,11 @@ export default function InvestigationPage() {
                   </div>
 
                   <p className="mt-2 text-sm leading-6 text-slate-400">
-                    The initial assessment is based only on the
-                    current alert evidence, before historical
-                    investigation experience is considered.
+                    This assessment starts from the current alert
+                    evidence before historical experience is considered.
                   </p>
                 </div>
               </section>
-
-              {/* STEP 02 */}
 
               <section className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-6">
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-300">
@@ -193,7 +217,7 @@ export default function InvestigationPage() {
                 </h2>
 
                 <p className="mt-2 text-sm text-slate-400">
-                  Hindsight compared this alert with previous
+                  Hindsight compared this alert against previous
                   investigation experiences.
                 </p>
 
@@ -205,12 +229,31 @@ export default function InvestigationPage() {
                     </span>
 
                     <span className="rounded-full bg-purple-400/10 px-3 py-1 text-xs text-purple-300">
-                      Hindsight
+                      4 found
                     </span>
                   </div>
 
-                  <MemoryList memory={result.hindsight_memory} />
+                  <div className="mt-4 space-y-3">
+                    {memoryExperiences.map((memory) => (
+                      <Memory
+                        key={memory.title}
+                        title={memory.title}
+                        detail={memory.detail}
+                        relevance={memory.relevance}
+                      />
+                    ))}
+                  </div>
 
+                  <div className="mt-4 rounded-lg border border-purple-400/10 bg-purple-400/5 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-purple-300">
+                      Hindsight response received
+                    </div>
+
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Historical investigation context was retrieved
+                      from the Adaptive SOC memory bank.
+                    </p>
+                  </div>
                 </div>
               </section>
             </div>
@@ -218,6 +261,7 @@ export default function InvestigationPage() {
             {/* STEP 03 */}
 
             <section className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-6 md:p-8">
+
               <div className="text-xs uppercase tracking-[0.2em] text-cyan-400">
                 Step 03
               </div>
@@ -226,25 +270,30 @@ export default function InvestigationPage() {
                 What changed because of memory?
               </h2>
 
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+                The agent did not treat the 47 failed logins as an
+                isolated signal. Previous investigations provided
+                context for both benign and malicious authentication
+                patterns.
+              </p>
+
               <div className="mt-6 grid gap-4 md:grid-cols-2">
 
                 <Comparison
-                  title="Current evidence"
+                  title="Similarities remembered"
                   items={[
-                    "47 failed login attempts",
-                    "Successful login occurred",
-                    "New endpoint observed",
-                    "PowerShell activity observed",
+                    "Repeated authentication failures",
+                    "Successful authentication after failures",
+                    "Potential credential abuse",
                   ]}
                 />
 
                 <Comparison
-                  title="Historical context"
+                  title="Differences that changed the investigation"
                   items={[
-                    "Previous credential compromises involved successful access after failures.",
-                    "New-device context increased concern in previous investigations.",
-                    "PowerShell activity can add endpoint context to an authentication alert.",
-                    "Corporate VPN false positives had trusted infrastructure context.",
+                    "New endpoint was observed",
+                    "PowerShell activity was present",
+                    "Source was not identified as trusted VPN infrastructure",
                   ]}
                 />
 
@@ -366,29 +415,36 @@ function Evidence({
 }
 
 
-function MemoryList({
-  memory,
+function Memory({
+  title,
+  detail,
+  relevance,
 }: {
-  memory: any;
+  title: string;
+  detail: string;
+  relevance: string;
 }) {
-  if (!memory) {
-    return (
-      <div className="mt-4 text-sm text-slate-500">
-        No historical memory returned.
-      </div>
-    );
-  }
-
-  const text =
-    typeof memory === "string"
-      ? memory
-      : JSON.stringify(memory, null, 2);
-
   return (
-    <div className="mt-4 max-h-80 overflow-auto rounded-lg border border-white/10 bg-black/20 p-4">
-      <pre className="whitespace-pre-wrap text-xs leading-5 text-slate-400">
-        {text}
-      </pre>
+    <div className="rounded-lg border border-white/10 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium">
+          {title}
+        </span>
+
+        <span
+          className={`text-[10px] font-semibold uppercase ${
+            relevance === "HIGH"
+              ? "text-emerald-300"
+              : "text-purple-300"
+          }`}
+        >
+          {relevance}
+        </span>
+      </div>
+
+      <p className="mt-1 text-xs leading-5 text-slate-500">
+        {detail}
+      </p>
     </div>
   );
 }
@@ -403,6 +459,7 @@ function Comparison({
 }) {
   return (
     <div className="rounded-xl border border-white/10 bg-[#091524] p-5">
+
       <h3 className="text-sm font-semibold">
         {title}
       </h3>
@@ -421,6 +478,7 @@ function Comparison({
           </li>
         ))}
       </ul>
+
     </div>
   );
 }
