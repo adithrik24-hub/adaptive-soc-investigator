@@ -45,10 +45,9 @@ export default function Dashboard() {
             <div className="rounded-xl bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-300">
               ◈ Investigation Queue
             </div>
-
-            <div className="rounded-xl px-4 py-3 text-sm text-slate-400 hover:bg-white/5">
-              ◉ Memory Explorer
-            </div>
+<Link href="/memory" className="hover:text-cyan-300">
+  Memory Explorer
+</Link>
 
             <div className="rounded-xl px-4 py-3 text-sm text-slate-400 hover:bg-white/5">
               ◷ Investigation Timeline
